@@ -5,5 +5,6 @@ export enum ApiRoutes {
   BOARDS = "boards",
   MANAGE_BOARD = "boards/",
   GROUPS = "groups",
-  MANAGE_GROUP = "groups/"
+  MANAGE_GROUP = "groups/",
+  PROFILE = "profile"
 }

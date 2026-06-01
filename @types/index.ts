@@ -47,3 +47,5 @@ export type TUpdateGroup = Pick<IGroup, "name">
 
 export type TCreateTask = Pick<ITask, "name" | "description" | "priority" | "isDone" | "dueDate" | "groupId">
 export type TUpdateTask = Partial<Omit<TCreateTask, "groupId">> & { groupId?: string; order?: number }
+
+export type TUpdateProfile = Pick<IUser, "name">

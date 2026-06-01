@@ -14,6 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn, useUploadThing } from "@/lib";
+import { Api } from "../../../../services/api-client";
 
 const profileSchema = z.object({
     name: z
@@ -77,10 +78,10 @@ export const ProfileForm: FC = () => {
     const onSubmit = async (data: TProfileForm) => {
         setIsSaving(true)
         try {
-            // Оновлюємо лише ім'я (аватар вже збережено в onUploadComplete)
-            await axios.patch("/api/profile", { name: data.name })
+            // updating name to DB
+            await Api.profile.update(data)
 
-            // Оновлюємо сесію
+            // updating next-auth session
             await update({
                 name: data.name,
                 image: uploadedUrl ?? user.image,
