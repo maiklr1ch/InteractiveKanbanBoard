@@ -86,7 +86,7 @@ export const ProfileForm: FC = () => {
         setIsSaving(true);
         try {
             // updating name to DB
-            await Api.profile.update({ name: data.name, image: uploadedUrl });
+            await Api.profile.update({ name: data.name, image: uploadedUrl ?? user.image });
 
             // updating next-auth session
             await update({
