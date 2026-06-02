@@ -36,7 +36,7 @@ export const ProfileForm: FC = () => {
     };
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    const [isSaving, setIsSaving] = useState(false)
+    const [isSaving, setIsSaving] = useState(false);
     const [avatarPreview, setAvatarPreview] = useState<string | null>(
         user.image ?? null
     );
@@ -44,14 +44,19 @@ export const ProfileForm: FC = () => {
 
     const { startUpload, isUploading } = useUploadThing("avatarUploader", {
         onClientUploadComplete: (res) => {
-            const url = res[0].url;
+            const url = res[0].serverData?.url ?? res[0].url;
+
+            if (!url) {
+                toast.error("Не вдалося отримати URL фото");
+                return;
+            }
+
             setUploadedUrl(url);
             setAvatarPreview(url);
             toast.success("Фото завантажено");
         },
         onUploadError: (error) => {
             toast.error("Помилка завантаження: " + error.message);
-            // Повертаємо попередній превʼю
             setAvatarPreview(user.image ?? null);
         },
     });
@@ -61,39 +66,41 @@ export const ProfileForm: FC = () => {
         defaultValues: { name: user.name ?? "" },
     });
 
-    const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0]
-        if (!file) return
+    const handleAvatarChange = async (
+        e: React.ChangeEvent<HTMLInputElement>
+    ) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
 
         if (file.size > 2 * 1024 * 1024) {
-            toast.error("Розмір файлу не має перевищувати 2MB")
-            return
+            toast.error("Розмір файлу не має перевищувати 2MB");
+            return;
         }
 
-        setAvatarPreview(URL.createObjectURL(file))
+        setAvatarPreview(URL.createObjectURL(file));
 
-        await startUpload([file])
-    }
+        await startUpload([file]);
+    };
 
     const onSubmit = async (data: TProfileForm) => {
-        setIsSaving(true)
+        setIsSaving(true);
         try {
             // updating name to DB
-            await Api.profile.update(data)
+            await Api.profile.update({ name: data.name, image: uploadedUrl });
 
             // updating next-auth session
             await update({
                 name: data.name,
                 image: uploadedUrl ?? user.image,
-            })
+            });
 
-            toast.success("Профіль оновлено")
+            toast.success("Профіль оновлено");
         } catch {
-            toast.error("Помилка збереження")
+            toast.error("Помилка збереження");
         } finally {
-            setIsSaving(false)
+            setIsSaving(false);
         }
-    }
+    };
     const initials = (user.name ?? user.email ?? "?")
         .split(" ")
         .map((n) => n[0])
@@ -189,7 +196,11 @@ export const ProfileForm: FC = () => {
                     onClick={form.handleSubmit(onSubmit)}
                     disabled={isSaving || isUploading}
                 >
-                    {isUploading ? "Завантаження фото..." : (isSaving ? "Збереження..." : "Зберегти зміни")}
+                    {isUploading
+                        ? "Завантаження фото..."
+                        : isSaving
+                        ? "Збереження..."
+                        : "Зберегти зміни"}
                 </Button>
             </CardContent>
         </Card>

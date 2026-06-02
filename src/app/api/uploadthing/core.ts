@@ -15,12 +15,19 @@ export const uploadFileRouter = {
       return { userId: session.user.id }
     })
     .onUploadComplete(async ({ metadata, file }) => {
-      await prisma.user.update({
-        where: { id: metadata.userId },
-        data: { image: file.ufsUrl },
-      })
-      return { url: file.ufsUrl }
-    }),
+      const imageUrl = file.ufsUrl ?? file.url
+      try {
+        await prisma.user.update({
+          where: { id: metadata.userId },
+          data: { image: imageUrl },
+        })
+      } catch (error) {
+        console.error("[UPLOADTHING] Помилка запису в БД:", error)
+        throw error
+      }
+
+      return { url: imageUrl }
+    })
 } satisfies FileRouter
 
 export type UploadFileRouter = typeof uploadFileRouter
